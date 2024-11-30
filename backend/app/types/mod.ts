@@ -2,20 +2,21 @@ import { Request } from 'express';
 
 export interface User {
    id: number;
-   username: string;
+   email: string;
    password: string;
 }
 
 export interface UserInput {
-   username: string;
+   email: string;
    password: string;
 }
 
 export interface JwtPayload {
    userId: number;
-   username: string;
+   email: string;
 }
 
 export interface AuthRequest extends Request {
-   user?: JwtPayload;
+   headers?: { authorization: string } | undefined;
+   user?: { id: string; is_superuser: boolean; is_active: boolean };
 }

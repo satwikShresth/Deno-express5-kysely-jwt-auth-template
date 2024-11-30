@@ -2,7 +2,7 @@
   "imports": {
     "@std/path": "jsr:@std/path@^1.0.8",
     "cors": "npm:cors@^2.8.5",
-    "express": "npm:express@next",
+    "express": "npm:express@5.0.1",
     "jsonwebtoken": "npm:jsonwebtoken@^9.0.2",
     "bcrypt": "https://deno.land/x/bcrypt@v0.3.0/mod.ts",
     "knex": "npm:knex@^3.1.0",
@@ -11,6 +11,11 @@
     "pg": "npm:pg@^8.13.1",
     "pg-pool": "npm:pg-pool@^3.7.0",
     "database/": "./database/",
+    "routes/": "./app/routes/",
+    "middlewares/": "./app/middlewares/",
+    "controllers/": "./app/controllers/",
+    "services/": "./app/services/",
+    "db": "./kysely.config.ts",
     "db/types": "./database/types/mod.ts",
     "app/types": "./app/types/mod.ts"
   },

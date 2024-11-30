@@ -1,6 +1,6 @@
 import { Kysely, PostgresDialect } from 'kysely';
 import { defineConfig } from 'kysely-ctl';
-import { Pool } from 'pg';
+import pg from 'pg';
 import Database from 'db/types';
 
 const database = Deno.env.get('POSTGRES_DB');
@@ -12,7 +12,7 @@ const min = 2;
 const max = 10;
 
 const pool = () =>
-   new Pool({
+   new pg.Pool({
       host: Deno.env.get('ENV') ? host : 'localhost',
       database,
       port,

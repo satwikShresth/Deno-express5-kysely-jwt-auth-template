@@ -45,8 +45,8 @@ services:
         - path: ./backend/app
           target: /src/app
           action: sync
-        - path: ./backend/views
-          target: /src/views
+        - path: ./backend/public
+          target: /src/public
           action: sync
         - path: ./backend/db
           target: /src/db

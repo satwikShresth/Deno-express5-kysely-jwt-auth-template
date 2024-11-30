@@ -1,13 +1,12 @@
 import express from 'express';
 import * as path from '@std/path';
-import { authRoutes } from './routes/auth/auth.routes.ts';
-import { protectedRoutes } from './routes/protected/protected.routes.ts';
 import cors from 'cors';
 import { CONFIG } from './config.ts';
+import { db } from 'db';
+import configureRouters from 'routes/mod.ts';
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(Deno.cwd(), 'public')));
@@ -16,8 +15,7 @@ app.get('/', (req, res) => {
    res.sendFile(path.join(Deno.cwd(), 'public', 'index.html'));
 });
 
-app.use('/auth', authRoutes);
-app.use('/protected', protectedRoutes);
+configureRouters(app);
 
 app.use(
    (

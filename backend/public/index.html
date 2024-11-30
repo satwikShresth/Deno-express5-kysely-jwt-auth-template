@@ -1,110 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>JWT Auth Test</title>
-      <style>
-         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-         }
-         .container {
-            display: flex;
-            gap: 20px;
-         }
-         .auth-section {
-            flex: 1;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-         }
-         .form-group {
-            margin-bottom: 15px;
-         }
-         input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-         }
-         button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-         }
-         button:hover {
-            background-color: #0056b3;
-         }
-         #response {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-            white-space: pre-wrap;
-         }
-         .error {
-            color: #dc3545;
-            margin-top: 5px;
-         }
-         .success {
-            color: #28a745;
-         }
-      </style>
-   </head>
-   <body>
-      <h1>JWT Authentication Test</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Testing Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">API Testing Dashboard</h1>
+        
+        <!-- Auth Section -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Register -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Register</h2>
+                <form id="registerForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="registerEmail" class="w-full p-2 border rounded" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="registerPassword" class="w-full p-2 border rounded" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Register</button>
+                </form>
+            </div>
 
-      <div class="container">
-         <div class="auth-section">
-            <h2>Register</h2>
-            <form id="registerForm">
-               <div class="form-group">
-                  <label for="registerUsername">Username:</label>
-                  <input type="text" id="registerUsername" required>
-               </div>
-               <div class="form-group">
-                  <label for="registerPassword">Password:</label>
-                  <input type="password" id="registerPassword" required>
-               </div>
-               <button type="submit">Register</button>
-            </form>
-         </div>
+            <!-- Login -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Login</h2>
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="loginEmail" class="w-full p-2 border rounded" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="loginPassword" class="w-full p-2 border rounded" required>
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Login</button>
+                </form>
+            </div>
+        </div>
 
-         <div class="auth-section">
-            <h2>Login</h2>
-            <form id="loginForm">
-               <div class="form-group">
-                  <label for="loginUsername">Username:</label>
-                  <input type="text" id="loginUsername" required>
-               </div>
-               <div class="form-group">
-                  <label for="loginPassword">Password:</label>
-                  <input type="password" id="loginPassword" required>
-               </div>
-               <button type="submit">Login</button>
-            </form>
-         </div>
-      </div>
+        <!-- Protected Routes Testing -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- User Routes -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">User Routes</h2>
+                <div class="space-y-4">
+                    <div>
+                        <button id="testMe" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">
+                            GET /users/me
+                        </button>
+                    </div>
+                    <div>
+                        <button id="testUsers" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">
+                            GET /users (Admin)
+                        </button>
+                    </div>
+                    <div>
+                        <button id="updateMe" class="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600">
+                            PATCH /users/me
+                        </button>
+                    </div>
+                    <div>
+                        <button id="deleteMe" class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
+                            DELETE /users/me
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-      <!-- Add this after the Protected Route Test section -->
-      <div class="auth-section" style="margin-top: 20px">
-         <h2>Logout</h2>
-         <button id="logout" style="background-color: #dc3545">Logout</button>
-      </div>
+            <!-- Item Routes -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Item Routes</h2>
+                <div class="space-y-4">
+                    <div>
+                        <button id="getItems" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">
+                            GET /items
+                        </button>
+                    </div>
+                    <div>
+                        <button id="createItem" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
+                            POST /items
+                        </button>
+                    </div>
+                    <div>
+                        <button id="updateItem" class="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600">
+                            PUT /items/{id}
+                        </button>
+                    </div>
+                    <div>
+                        <button id="deleteItem" class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
+                            DELETE /items/{id}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <div class="auth-section" style="margin-top: 20px">
-         <h2>Protected Route Test</h2>
-         <button id="testProtected">Test Protected Route</button>
-      </div>
+        <div class="flex justify-end mb-8">
+            <button id="logout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+        </div>
 
-      <div id="response"></div>
+        <!-- Response Display -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Response</h2>
+            <pre id="response" class="bg-gray-100 p-4 rounded overflow-x-auto"></pre>
+        </div>
+    </div>
 
-      <script src="js/auth.js"></script>
-   </body>
+    <script>
+        const API_URL = 'http://localhost:3000';
+        const ENDPOINTS = {
+            register: `${API_URL}/auth/register`,
+            login: `${API_URL}/auth/login`,
+            me: `${API_URL}/users/me`,
+            users: `${API_URL}/users`,
+            items: `${API_URL}/items`
+        };
+
+        let currentItemId = null;
+
+        function displayResponse(data, isError = false) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = `<div class="${isError ? 'text-red-500' : 'text-green-500'}">
+                ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}
+            </div>`;
+        }
+
+        async function makeRequest(url, options) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers,
+                    },
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Request failed');
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function getAuthHeader() {
+            const token = localStorage.getItem('jwt_token');
+            return token ? { Authorization: `Bearer ${token}` } : {};
+        }
+
+        // Auth Routes
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const data = await makeRequest(ENDPOINTS.register, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: document.getElementById('registerEmail').value,
+                        password: document.getElementById('registerPassword').value
+                    })
+                });
+                displayResponse(data);
+                e.target.reset();
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const data = await makeRequest(ENDPOINTS.login, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                localStorage.setItem('jwt_token', data.token);
+                displayResponse({ ...data, note: 'Token stored in localStorage' });
+                e.target.reset();
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        // User Routes
+        document.getElementById('testMe').addEventListener('click', async () => {
+            try {
+                const data = await makeRequest(ENDPOINTS.me, {
+                    method: 'GET',
+                    headers: getAuthHeader()
+                });
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('testUsers').addEventListener('click', async () => {
+            try {
+                const data = await makeRequest(ENDPOINTS.users, {
+                    method: 'GET',
+                    headers: getAuthHeader()
+                });
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('updateMe').addEventListener('click', async () => {
+            try {
+                const data = await makeRequest(`${ENDPOINTS.me}`, {
+                    method: 'PATCH',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify({
+                        full_name: 'Updated Name'
+                    })
+                });
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('deleteMe').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete your account?')) return;
+            try {
+                const data = await makeRequest(`${ENDPOINTS.me}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeader()
+                });
+                localStorage.removeItem('jwt_token');
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        // Item Routes
+        document.getElementById('getItems').addEventListener('click', async () => {
+            try {
+                const data = await makeRequest(ENDPOINTS.items, {
+                    method: 'GET',
+                    headers: getAuthHeader()
+                });
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('createItem').addEventListener('click', async () => {
+            try {
+                const data = await makeRequest(ENDPOINTS.items, {
+                    method: 'POST',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify({
+                        title: 'Test Item',
+                        description: 'This is a test item'
+                    })
+                });
+                currentItemId = data.id;
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('updateItem').addEventListener('click', async () => {
+            if (!currentItemId) {
+                displayResponse('Please create an item first', true);
+                return;
+            }
+            try {
+                const data = await makeRequest(`${ENDPOINTS.items}/${currentItemId}`, {
+                    method: 'PUT',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify({
+                        title: 'Updated Item',
+                        description: 'This item has been updated'
+                    })
+                });
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('deleteItem').addEventListener('click', async () => {
+            if (!currentItemId) {
+                displayResponse('Please create an item first', true);
+                return;
+            }
+            try {
+                const data = await makeRequest(`${ENDPOINTS.items}/${currentItemId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeader()
+                });
+                currentItemId = null;
+                displayResponse(data);
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('jwt_token');
+            displayResponse('Successfully logged out');
+        });
+    </script>
+</body>
 </html>
