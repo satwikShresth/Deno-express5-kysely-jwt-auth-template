@@ -1,10 +1,10 @@
 import { Application } from 'express';
-import authRouter from 'routes/auth.routes.ts';
-import configureProtectedRoutes from 'routes/protected/mod.ts';
+import getAuthRouter from 'routes/auth.routes.ts';
+import getProtectedRouter from 'routes/protected/mod.ts';
+import { authenticateToken } from 'middlewares/auth.middleware.ts';
+import listEndpoints from 'express-list-endpoints';
 
 export default (app: Application) => {
-   console.log('Configuring Routes:');
-   app.use('/auth', authRouter());
-   configureProtectedRoutes(app);
+   app.use('/api/v1/', getAuthRouter());
+   app.use('/api/v1/', getProtectedRouter());
 };
-

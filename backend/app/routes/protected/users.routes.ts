@@ -1,10 +1,44 @@
 // src/routes/protected/users.routes.ts
 import { Request, Response, Router } from 'express';
 import { User, UserUpdate } from 'db/types';
-import { checkSuperUser } from 'middlewares/user.middleware.ts';
+import { checkSuperUser, validateBody } from 'middlewares/user.middleware.ts';
 import { db } from 'db';
+import { authenticateToken } from 'middlewares/auth.middleware.ts';
+import vine from '@vinejs/vine';
+import { authService } from 'services/auth.service.ts';
+
+export const registerSchema = vine.object({
+   email: vine.string()
+      .email()
+      .maxLength(255),
+   password: vine.string()
+      .minLength(8)
+      .maxLength(40),
+   full_name: vine.string()
+      .maxLength(255)
+      .optional(),
+});
 
 const controllers = {
+   signup: async (
+      req: Request,
+      res: Response,
+   ): Promise<Response> => {
+      const { email, password, full_name } = req.body;
+      console.log({ email, password, full_name });
+
+      if (!email || !password) {
+         return res.status(400).json({
+            message: 'Username and password are required',
+         });
+      }
+
+      await authService.registerUser(email, password, full_name);
+      return res.status(201).json({
+         message: 'User registered successfully',
+      });
+   },
+
    getQueryUser: async (req: Request, res: Response) => {
       const { skip = 0, limit = 100 } = req.query;
 
@@ -172,14 +206,23 @@ const controllers = {
 export default () => {
    const router = Router();
 
-   router.get('/', checkSuperUser, controllers.getQueryUser);
-   router.get('/:id', checkSuperUser, controllers.getUserById);
-   router.patch('/:id', checkSuperUser, controllers.patchUserById);
-   router.delete('/:id', checkSuperUser, controllers.deleteUserById);
+   router.post('/signup', validateBody(registerSchema), controllers.signup);
 
-   router.get('/me', controllers.getMe);
-   router.patch('/me', controllers.patchMe);
-   router.delete('/me', controllers.deleteUser);
+   router.route('/me')
+      .all(authenticateToken)
+      .get(controllers.getMe)
+      .patch(controllers.patchMe)
+      .delete(controllers.deleteUser);
+
+   router.route('/:id')
+      .all([authenticateToken, checkSuperUser])
+      .get(controllers.getUserById)
+      .patch(controllers.patchUserById)
+      .delete(controllers.deleteUserById);
+
+   router.route('/')
+      .all([authenticateToken, checkSuperUser])
+      .get(controllers.getQueryUser);
 
    return router;
 };

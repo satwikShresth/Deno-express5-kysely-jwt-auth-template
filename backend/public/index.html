@@ -116,11 +116,11 @@
     <script>
         const API_URL = 'http://localhost:3000';
         const ENDPOINTS = {
-            register: `${API_URL}/auth/register`,
-            login: `${API_URL}/auth/login`,
-            me: `${API_URL}/users/me`,
-            users: `${API_URL}/users`,
-            items: `${API_URL}/items`
+            register: `${API_URL}/api/v1/register`,
+            login: `${API_URL}/api/v1/login`,
+            me: `${API_URL}/api/users/me`,
+            users: `${API_URL}/api/users`,
+            items: `${API_URL}/api/items`
         };
 
         let currentItemId = null;
@@ -166,6 +166,7 @@
                     })
                 });
                 displayResponse(data);
+                console.log(await data.json())
                 e.target.reset();
             } catch (error) {
                 displayResponse(error.message, true);
@@ -198,8 +199,10 @@
                     headers: getAuthHeader()
                 });
                 displayResponse(data);
+                console.log(data);
             } catch (error) {
                 displayResponse(error.message, true);
+                console.log(error);
             }
         });
 

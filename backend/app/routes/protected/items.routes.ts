@@ -1,7 +1,7 @@
 import { Response, Router } from 'express';
 import { AuthRequest } from 'app/types';
 import { db } from 'db';
-import { ItemUpdate, NewItem, User } from 'db/types';
+import { ItemUpdate, User } from 'db/types';
 
 interface QueryAuthRequest extends AuthRequest {
    query: {
@@ -9,7 +9,7 @@ interface QueryAuthRequest extends AuthRequest {
       limit?: number;
    };
    params: { id: string };
-   body: object;
+   body: { title?: string; description?: string };
 }
 
 const controllers = {
@@ -59,12 +59,12 @@ const controllers = {
    },
 
    postQueryItem: async (req: QueryAuthRequest, res: Response) => {
-      const itemData: object = req.body;
-      const user = req.user;
+      const { title, description } = req.body;
+      const owner_id = req.user.id;
 
       const newItem = await db
          .insertInto('item')
-         .values({ ...itemData, owner_id: user.id })
+         .values({ title, description, owner_id })
          .returningAll()
          .executeTakeFirst();
 
@@ -130,11 +130,14 @@ const controllers = {
 export default () => {
    const router = Router();
 
-   router.get('/', controllers.getQueryItem);
-   router.get('/:id', controllers.getQueryItemById);
-   router.post('/', controllers.postQueryItem);
-   router.put('/:id', controllers.putQueryItembyId);
-   router.delete('/:id', controllers.deleteQueryItemById);
+   router.route('/')
+      .get(controllers.getQueryItem)
+      .post(controllers.postQueryItem);
+
+   router.route('/:id')
+      .get(controllers.getQueryItemById)
+      .put(controllers.putQueryItembyId)
+      .delete(controllers.deleteQueryItemById);
 
    return router;
 };

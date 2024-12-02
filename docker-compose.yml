@@ -31,6 +31,19 @@ services:
       - source: adminer-index.php
         target: /var/www/html/index.php
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    container_name: frontend
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - NODE_ENV=development
+    ports:
+      - "5173:80"
+
   backend:
     build:
       context: ./backend
@@ -59,8 +72,6 @@ services:
         - path: ./backend/dockerfile
           action: rebuild
         - path: ./docker-compose.yml
-          action: rebuild
-        - path: ./.env
           action: rebuild
 
     depends_on:
