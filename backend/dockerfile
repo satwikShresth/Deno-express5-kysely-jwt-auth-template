@@ -1,21 +1,21 @@
 FROM denoland/deno:alpine
 
-WORKDIR /src
+WORKDIR /app
 
 RUN apk add --no-cache libstdc++
 
-COPY ./app /src/app
+COPY ./src /app/src
 
-COPY ./deno.* /src/
-COPY ./*.ts /src/
+COPY ./deno.* /app/
+COPY ./*.ts /app/
 
-COPY ./database /src/database
+COPY ./database /app/database
 
-COPY ./public /src/public
+COPY ./public /app/public
 
-COPY ./entrypoint.sh /src/
-RUN chmod +x /src/entrypoint.sh
+COPY ./entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["/src/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]

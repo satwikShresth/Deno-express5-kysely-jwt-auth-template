@@ -25,7 +25,6 @@ const controllers = {
       res: Response,
    ): Promise<Response> => {
       const { email, password, full_name } = req.body;
-      console.log({ email, password, full_name });
 
       if (!email || !password) {
          return res.status(400).json({

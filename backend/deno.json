@@ -19,13 +19,13 @@
     "pg": "npm:pg@^8.13.1",
     "pg-pool": "npm:pg-pool@^3.7.0",
     "database/": "./database/",
-    "routes/": "./app/routes/",
-    "middlewares/": "./app/middlewares/",
-    "controllers/": "./app/controllers/",
-    "services/": "./app/services/",
+    "routes/": "./src/routes/",
+    "middlewares/": "./src/middlewares/",
+    "controllers/": "./src/controllers/",
+    "services/": "./src/services/",
     "db": "./kysely.config.ts",
     "db/types": "./database/types/mod.ts",
-    "app/types": "./app/types/mod.ts"
+    "app/types": "./src/types/mod.ts"
   },
    "fmt": {
       "useTabs": false,
@@ -37,10 +37,10 @@
       "exclude": ["src/static"]
    },
    "tasks": {
-      "dev": "deno -A --watch app/main.ts",
+      "dev": "deno -A --watch src/main.ts",
       "migrate:latest":"deno -A npm:kysely-ctl migrate:latest"
       "migrate:make":"deno -A --env-file npm:kysely-ctl migrate:make "
-      "format": "deno fmt --watch app",
+      "format": "deno fmt --watch src",
     },
    "nodeModulesDir": "auto"
 }

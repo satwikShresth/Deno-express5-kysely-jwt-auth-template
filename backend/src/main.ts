@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import chalk from 'chalk'; // For colored console output
 import * as path from '@std/path';
 import cors from 'cors';
-import configureRouters from 'routes/mod.ts';
+import apiV1Routes from 'routes/mod.ts';
 
 const app = express();
 const PORT = Deno.env.get('PORT');
@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
    res.sendFile(path.join(Deno.cwd(), 'public', 'index.html'));
 });
 
-configureRouters(app);
+app.use('/api/v1/', apiV1Routes());
 
 app.use(
    (

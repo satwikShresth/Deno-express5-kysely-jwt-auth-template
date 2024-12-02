@@ -31,18 +31,6 @@ services:
       - source: adminer-index.php
         target: /var/www/html/index.php
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: dockerfile
-    container_name: frontend
-    env_file:
-      - .env
-    environment:
-      - VITE_API_URL=http://localhost:3000
-      - NODE_ENV=development
-    ports:
-      - "5173:80"
 
   backend:
     build:
@@ -56,16 +44,16 @@ services:
     develop:
       watch: 
         - path: ./backend/app
-          target: /src/app
+          target: /app/src
           action: sync
         - path: ./backend/public
-          target: /src/public
+          target: /app/public
           action: sync
         - path: ./backend/db
-          target: /src/db
+          target: /app/db
           action: sync+restart
         - path: ./backend/deno.json
-          target: /src/deno.json
+          target: /app/deno.json
           action: sync+restart
         - path: ./backend/entrypoint.sh
           action: rebuild
@@ -79,6 +67,36 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    container_name: frontend
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - NODE_ENV=development
+    ports:
+      - "5173:80"
+    develop:
+      watch: 
+        - path: ./frontend/public
+          target: /app/public
+          action: sync
+        - path: ./frontend/src
+          target: /app/src
+          action: sync
+        - path: ./frontend/tests
+          target: /app/tests
+          action: sync+restart
+        - path: ./frontend/package.json
+          target: /app/package.json
+          action: sync+restart
+    depends_on:
+      - backend
+
 
 configs:
   adminer-index.php:
