@@ -1,9 +1,19 @@
-import { Request } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
+// Type of an Express middleware
+export type Middleware = (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+) => void | Promise<void>;
 
 export interface User {
-   id: number;
+   id: string;
    email: string;
-   password: string;
+   full_name?: string;
+   hashed_password: string;
+   is_active: boolean;
+   is_superuser: boolean;
 }
 
 export interface UserInput {

@@ -37,7 +37,7 @@ export async function authenticateToken(
       next();
    } catch (error) {
       return res.status(403).json({
-         message: `Authentication Error: ${error}`,
+         detail: `Could not validate credentials`,
       });
    }
 }

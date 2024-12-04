@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
-import chalk from 'chalk'; // For colored console output
+import chalk from 'chalk';
 import * as path from '@std/path';
 import cors from 'cors';
 import apiV1Routes from 'routes/mod.ts';
@@ -8,76 +8,66 @@ import apiV1Routes from 'routes/mod.ts';
 const app = express();
 const PORT = Deno.env.get('PORT');
 
-// Custom morgan tokens
-morgan.token('error-message', (req: Request, res: Response) => {
-   return res.locals.errorMessage || '';
-});
-
-morgan.token('client-ip', (req: Request) => {
-   return req.ip || req.socket.remoteAddress || '';
-});
-
-// Success logging
-app.use(express.urlencoded({ extended: true }));
-app.use(
-   morgan(chalk.green(':client-ip :method :url :status :response-time ms')),
-);
+// Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(express.static(path.join(Deno.cwd(), 'public')));
+app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-   res.sendFile(path.join(Deno.cwd(), 'public', 'index.html'));
+// Custom logging middleware inspired by FastAPI
+app.use((req: Request, res: Response, next: NextFunction) => {
+   const start = Date.now();
+   res.on('finish', () => {
+      const duration = Date.now() - start;
+      const status = res.statusCode;
+      const color = status >= 500 ? 'red' : status >= 400 ? 'yellow' : 'green';
+      const symbol = status >= 400 ? '✗' : '✓';
+
+      console.log(
+         chalk[color](
+            `${symbol} ${req.method} ${req.originalUrl} [${status}] ${duration}ms`,
+         ),
+      );
+   });
+   next();
 });
 
-app.use('/api/v1/', apiV1Routes());
+// Routes
+app.get('/', (req, res) => {
+   res.sendFile('public/index.html');
+});
 
-app.use(
-   (
-      err: Error,
-      _req: express.Request,
-      res: express.Response,
-      _next: express.NextFunction,
-   ) => {
-      console.error(err);
-      res.status(500).json({ message: 'Something went wrong!' });
-   },
-);
+app.use('/api/v1', apiV1Routes());
 
-app.use(
-   (
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction,
-   ) => {
-      const error = new Error(`Route not found: ${req.originalUrl}`);
-      res.locals.errorMessage = error.message;
-      res.status(404);
-      next(error);
-   },
-);
+// Error handling
+app.use((req: Request, res: Response, next: NextFunction) => {
+   const error = new Error(`Not Found: ${req.originalUrl}`);
+   res.status(404);
+   next(error);
+});
 
 app.use(
    (
       error: Error,
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction,
+      req: Request,
+      res: Response,
+      next: NextFunction,
    ) => {
-      const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-      const logMessage =
-         `❌ ${req.ip} ${req.method} ${req.originalUrl} ${statusCode} - ${error.message}`;
+      const status = res.statusCode !== 200 ? res.statusCode : 500;
 
-      // Log error in red
-      console.log(chalk.red(logMessage));
+      console.error(chalk.red(`Error: ${error.message}`));
 
-      res.status(statusCode).json({
+      res.status(status).json({
          message: error.message,
-         stack: process.env.NODE_ENV === 'development' ? error.stack : '🥞',
+         stack: Deno.env.get('ENV') === 'development' ? error.stack : undefined,
       });
    },
 );
 
+// Start server
 app.listen(PORT, () => {
-   console.log(chalk.blue(`🚀 Server started on port ${PORT}`));
+   console.log(chalk.blue(`
+🚀 Server running on http://localhost:${PORT}
+✨ Environment: ${Deno.env.get('ENV') || 'development'}
+  `));
 });
