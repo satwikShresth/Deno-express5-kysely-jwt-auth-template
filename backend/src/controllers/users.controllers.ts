@@ -75,7 +75,6 @@ export default {
 
    modifyUser: async (req: Request, res: Response) => {
       const body: ModifyUser = await ModifyUser.parseAsync(req.body);
-      console.log(body);
       const updatedUser = await authService.updateUser(
          req.params.id,
          body,
