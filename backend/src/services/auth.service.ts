@@ -1,8 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User } from 'app/types';
 import { db } from 'db';
-import { UserUpdate } from 'db/types';
+import { User, UserUpdate } from 'db/types';
 import { JwtPayload } from 'models/auth.model.ts';
 
 export class AuthService {
@@ -10,7 +9,6 @@ export class AuthService {
    private JWT_SECRET = Deno.env.get('JWT_SECRET');
    private JWT_EXPIRATION = Deno.env.get('JWT_EXPIRATION');
 
-   // Private helper methods for validation
    private async validateUserExists(id: string): Promise<User> {
       const user = await this.findUserById(id);
       if (!user) {

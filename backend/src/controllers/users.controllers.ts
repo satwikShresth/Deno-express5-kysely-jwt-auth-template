@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { User } from 'db/types';
 import { authService } from 'services/auth.service.ts';
 import {
    ModifyInfo,
@@ -7,6 +6,7 @@ import {
    ModifyUser,
    QueryUser,
    SuperUserSignup,
+   User,
    UserId,
 } from 'models/users.model.ts';
 

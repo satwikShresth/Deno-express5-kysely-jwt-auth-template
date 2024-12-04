@@ -7,10 +7,9 @@ import {
    is_active,
    is_superuser,
    new_password,
-   parseOptionalInt,
    password,
    QuerySkipLimit,
-} from './common.model.ts';
+} from 'models/common.model.ts';
 
 // SuperUserSignup Schema
 export const SuperUserSignup = z
@@ -89,7 +88,17 @@ export const UserId = z.object({
    id,
 });
 
+export const User = z.object({
+   id,
+   email,
+   full_name: full_name.optional(),
+   hashed_password: hashed_password.optional(),
+   is_active,
+   is_superuser,
+});
+
 // Types extracted from schemas
+export type User = z.infer<typeof User>;
 export type UserId = z.infer<typeof UserId>;
 export type ModifyUser = z.infer<typeof ModifyUser>;
 export type QueryUser = z.infer<typeof QueryUser>;

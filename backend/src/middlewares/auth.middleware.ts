@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { authService } from 'services/auth.service.ts';
-import { JwtPayload } from '../models/auth.model.ts';
+import { JwtPayload } from 'models/auth.model.ts';
 
 export async function authenticateToken(
    req: Request,
