@@ -1,20 +1,23 @@
 import { Router } from 'express';
-import { authService } from 'services/auth.service.ts';
-import {
-   authenticateToken,
-   parseOAuth2Form,
-} from 'middlewares/auth.middleware.ts';
+import { Login, Signup } from '../models/auth.model.ts';
+import { validateRequest } from 'zod-express-middleware';
+import { authenticateToken } from 'middlewares/auth.middleware.ts';
 import authControllers from 'controllers/auth.controllers.ts';
+import { parseFormData } from 'middlewares/common.middlware.ts';
 
 export default () => {
    const router = Router();
 
-   router.post('/register', authControllers.register);
-   router.post('/login', authControllers.login);
+   router.post(
+      '/signup',
+      validateRequest({ body: Signup }),
+      authControllers.signup,
+   );
 
    router.post(
       '/login/access-token',
-      parseOAuth2Form,
+      parseFormData,
+      validateRequest({ body: Login }),
       authControllers.accessToken,
    );
 

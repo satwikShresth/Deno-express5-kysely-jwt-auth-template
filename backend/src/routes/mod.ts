@@ -8,7 +8,7 @@ export default () => {
    const router = Router();
 
    router.use('/items', authenticateToken, itemsRoutes());
-   router.use('/users', usersRoutes());
+   router.use('/users', authenticateToken, usersRoutes());
    router.use(authRoutes());
 
    return router;

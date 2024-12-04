@@ -2,28 +2,20 @@
 import { Router } from 'express';
 import { validateRequest } from 'zod-express-middleware';
 import { checkSuperUser } from 'middlewares/user.middleware.ts';
-import { authenticateToken } from 'middlewares/auth.middleware.ts';
 import usersControllers from 'controllers/users.controllers.ts';
 import {
    ModifyInfo,
    ModifyPassword,
    ModifyUser,
-   Signup,
+   QueryUser,
    SuperUserSignup,
-   UserQuery,
+   UserId,
 } from '../models/users.model.ts';
 
 export default () => {
    const router = Router();
 
-   router.post(
-      '/signup',
-      validateRequest({ body: Signup }),
-      usersControllers.signup,
-   );
-
    router.route('/me')
-      .all([authenticateToken])
       .get(usersControllers.getMyInfo)
       .patch(
          validateRequest({ body: ModifyInfo }),
@@ -32,25 +24,30 @@ export default () => {
       .delete(usersControllers.deleteCurrUser);
 
    router.route('/me/password')
-      .all([authenticateToken])
       .patch(
          validateRequest({ body: ModifyPassword }),
          usersControllers.updatePassword,
       );
 
    router.route('/:id')
-      .all([authenticateToken, checkSuperUser])
-      .get(usersControllers.getUser)
+      .all([checkSuperUser])
+      .get(
+         validateRequest({ params: UserId }),
+         usersControllers.getUser,
+      )
       .patch(
-         validateRequest({ body: ModifyUser }),
+         validateRequest({ body: ModifyUser, params: UserId }),
          usersControllers.modifyUser,
       )
-      .delete(usersControllers.deleteUser);
+      .delete(
+         validateRequest({ params: UserId }),
+         usersControllers.deleteUser,
+      );
 
    router.route('/')
-      .all([authenticateToken, checkSuperUser])
+      .all([checkSuperUser])
       .get(
-         validateRequest({ query: UserQuery }),
+         validateRequest({ query: QueryUser }),
          usersControllers.queryUser,
       ).post(
          validateRequest({ body: SuperUserSignup }),

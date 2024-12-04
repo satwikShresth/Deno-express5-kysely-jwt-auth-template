@@ -5,24 +5,12 @@ import {
    ModifyInfo,
    ModifyPassword,
    ModifyUser,
-   Signup,
+   QueryUser,
    SuperUserSignup,
+   UserId,
 } from '../models/users.model.ts';
 
-const userController = {
-   signup: async (req: Request, res: Response): Promise<Response> => {
-      const { email, password, full_name }: Signup = await Signup.parseAsync(
-         req.body,
-      );
-
-      await authService.registerUser(
-         email,
-         password,
-         full_name,
-      );
-      return res.status(201).json({ message: 'User registered successfully' });
-   },
-
+export default {
    superUserSignup: async (req: Request, res: Response): Promise<Response> => {
       const { email, password, full_name, is_active, is_superuser }:
          SuperUserSignup = await SuperUserSignup
@@ -41,7 +29,7 @@ const userController = {
    },
 
    queryUser: async (req: Request, res: Response) => {
-      const { skip = 0, limit = 100 } = req.query;
+      const { skip = 0, limit = 100 } = await QueryUser.parseAsync(req.query);
       const result = await authService.queryUsers(Number(skip), Number(limit));
       res.json(result);
    },
@@ -51,7 +39,8 @@ const userController = {
    },
 
    getUser: async (req: Request, res: Response) => {
-      const user = await authService.findUserById(req.params.id);
+      const { id }: UserId = await UserId.parseAsync(req.params);
+      const user = await authService.findUserById(id);
       if (!user) {
          return res.status(404).json({ detail: 'User not found' });
       }
@@ -86,6 +75,7 @@ const userController = {
 
    modifyUser: async (req: Request, res: Response) => {
       const body: ModifyUser = await ModifyUser.parseAsync(req.body);
+      console.log(body);
       const updatedUser = await authService.updateUser(
          req.params.id,
          body,
@@ -100,9 +90,8 @@ const userController = {
    },
 
    deleteUser: async (req: Request, res: Response) => {
-      await authService.deleteUser(req.params.id);
+      const { id }: UserId = await UserId.parseAsync(req.params);
+      await authService.deleteUser(id);
       res.json({ message: 'User deleted successfully' });
    },
-};
-
-export default userController;
+} as const;

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User } from 'app/types';
 import { db } from 'db';
 import { UserUpdate } from 'db/types';
+import { JwtPayload } from '../models/auth.model.ts';
 
 export class AuthService {
    private SALT_ROUNDS = <number | undefined> Deno.env.get('SALT_ROUNDS');
@@ -38,13 +39,6 @@ export class AuthService {
       }
    }
 
-   private validateSuperUserDelete(user: User): void {
-      if (user.is_superuser) {
-         throw new Error('Super users are not allowed to delete themselves');
-      }
-   }
-
-   // Base user query methods
    async findUserById(id: string): Promise<User> {
       return await db
          .selectFrom('user')
@@ -121,6 +115,10 @@ export class AuthService {
    ): Promise<void> {
       const user = await this.validateUserExists(userId);
 
+      if (!user.hashed_password) {
+         throw new Error('Password Missing');
+      }
+
       const isValidPassword = await bcrypt.compare(
          currentPassword,
          user.hashed_password,
@@ -146,14 +144,22 @@ export class AuthService {
    }
 
    async deleteUser(userId: string): Promise<void> {
+      // Validate that the user exists before attempting the deletion
       const userToDelete = await this.validateUserExists(userId);
 
+      if (!userToDelete) {
+         throw new Error(`User with ID ${userId} does not exist`);
+      }
+
+      // Perform the transaction
       await db.transaction().execute(async (trx) => {
+         // Delete all items associated with the user
          await trx
             .deleteFrom('item')
             .where('owner_id', '=', userId)
             .execute();
 
+         // Delete the user from the 'user' table
          await trx
             .deleteFrom('user')
             .where('id', '=', userId)
@@ -178,10 +184,43 @@ export class AuthService {
 
    generateToken(user: User): string {
       return jwt.sign(
-         { id: user.id },
+         {
+            id: user.id,
+            email: user.email,
+            is_active: user.is_active,
+            //iss: 'example.com', // Issuer (your domain or system)
+            iat: Math.floor(Date.now() / 1000), // Issued at
+         },
          this.JWT_SECRET,
          { expiresIn: this.JWT_EXPIRATION },
       );
+   }
+
+   decodeJwtToken(token: string): JwtPayload {
+      const decoded = jwt.verify(token, this.JWT_SECRET);
+      return decoded;
+   }
+
+   async validateJwtToken(payload: JwtPayload): Promise<User> {
+      const user = await db
+         .selectFrom('user')
+         .select(['id', 'email', 'is_active', 'full_name', 'is_superuser'])
+         .where('id', '=', payload.id)
+         .executeTakeFirst();
+
+      if (!user) {
+         throw new Error('User not found');
+      }
+
+      if (user.email !== payload.email) {
+         throw new Error('Email mismatch');
+      }
+
+      if (user.is_active !== payload.is_active) {
+         throw new Error('Account status mismatch');
+      }
+
+      return user as User;
    }
 }
 export const authService = new AuthService();
