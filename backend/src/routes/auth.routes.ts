@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Login, Signup } from '../models/auth.model.ts';
+import { Login, Signup } from 'models/auth.model.ts';
 import { validateRequest } from 'zod-express-middleware';
 import { authenticateToken } from 'middlewares/auth.middleware.ts';
 import authControllers from 'controllers/auth.controllers.ts';

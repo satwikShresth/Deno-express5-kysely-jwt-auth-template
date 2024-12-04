@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { authService } from 'services/auth.service.ts';
-import { Login, Signup } from '../models/auth.model.ts';
+import { Login, Signup } from 'models/auth.model.ts';
 
 export default {
    signup: async (req: Request, res: Response): Promise<Response> => {

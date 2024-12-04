@@ -8,7 +8,7 @@ import {
    QueryUser,
    SuperUserSignup,
    UserId,
-} from '../models/users.model.ts';
+} from 'models/users.model.ts';
 
 export default {
    superUserSignup: async (req: Request, res: Response): Promise<Response> => {

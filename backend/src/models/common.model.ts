@@ -55,3 +55,8 @@ export const parseOptionalInt = (
          )
          .optional(),
    );
+
+export const QuerySkipLimit = z.object({
+   skip: parseOptionalInt('Skip', 0),
+   limit: parseOptionalInt('Limit', 1, 1000),
+});

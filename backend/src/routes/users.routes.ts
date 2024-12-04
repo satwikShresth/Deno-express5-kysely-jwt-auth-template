@@ -10,7 +10,7 @@ import {
    QueryUser,
    SuperUserSignup,
    UserId,
-} from '../models/users.model.ts';
+} from 'models/users.model.ts';
 
 export default () => {
    const router = Router();

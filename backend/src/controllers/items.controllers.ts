@@ -1,48 +1,29 @@
 import { Request, Response } from 'express';
-import { db } from 'db';
+import { itemService } from 'services/item.service.ts';
+import { Item, QueryItem } from 'models/items.model.ts';
+import { UserId } from 'models/users.model.ts';
 import { ItemUpdate, User } from 'db/types';
 
 export default {
-   queryItem: (async (req: Request, res: Response) => {
-      const { skip = 0, limit = 100 } = req.query;
+   queryItem: async (req: Request, res: Response) => {
+      const { skip = 0, limit = 100 } = QueryItem.parse(req.query);
       const user = req.user as User;
 
-      let query = db
-         .selectFrom('item')
-         .selectAll();
-      let countQuery = db
-         .selectFrom('item')
-         .select(
-            db.fn.count('id').as('count'),
-         );
+      const items = await itemService.getItems(
+         skip,
+         limit,
+         user.id,
+      );
+      const count = await itemService.getItemCount(user.id);
 
-      if (!user.is_superuser) {
-         query = query
-            .where('owner_id', '=', user.id);
+      res.json({ data: items, count });
+   },
 
-         countQuery = countQuery
-            .where('owner_id', '=', user.id);
-      }
-
-      const items = await query
-         .limit(Number(limit))
-         .offset(Number(skip))
-         .execute();
-
-      const count = await countQuery.executeTakeFirst();
-
-      res.json({ data: items, count: Number(count?.count || 0) });
-   }),
-
-   getItem: (async (req: Request, res: Response) => {
-      const { id } = req.params;
+   getItem: async (req: Request, res: Response) => {
+      const { id }: UserId = await UserId.parseAsync(req.params);
       const user = req.user as User;
 
-      const item = await db
-         .selectFrom('item')
-         .selectAll()
-         .where('id', '=', id)
-         .executeTakeFirst();
+      const item = await itemService.getItemById(id);
 
       if (!item) {
          return res.status(404).json({ detail: 'Item not found' });
@@ -53,31 +34,23 @@ export default {
       }
 
       res.json(item);
-   }),
+   },
 
-   addItem: (async (req: Request, res: Response) => {
-      const { title, description } = req.body;
-      const owner_id = req.user.id;
+   addItem: async (req: Request, res: Response) => {
+      const { title, description }: Item = await Item.parseAsync(req.body);
+      const user = req.user as User;
 
-      const newItem = await db
-         .insertInto('item')
-         .values({ title, description, owner_id })
-         .returningAll()
-         .executeTakeFirst();
+      const newItem = await itemService.createItem(title, description, user.id);
 
       res.status(201).json(newItem);
-   }),
+   },
 
-   modifyItem: (async (req: Request, res: Response) => {
-      const { id } = req.params;
-      const itemData: ItemUpdate = req.body;
+   modifyItem: async (req: Request, res: Response) => {
+      const { id }: UserId = await UserId.parseAsync(req.params);
+      const itemData = req.body as ItemUpdate;
       const user = req.user as User;
 
-      const item = await db
-         .selectFrom('item')
-         .selectAll()
-         .where('id', '=', id)
-         .executeTakeFirst();
+      const item = await itemService.getItemById(id);
 
       if (!item) {
          return res.status(404).json({ detail: 'Item not found' });
@@ -87,25 +60,16 @@ export default {
          return res.status(403).json({ detail: 'Not enough permissions' });
       }
 
-      const updatedItem = await db
-         .updateTable('item')
-         .set(itemData)
-         .where('id', '=', id)
-         .returningAll()
-         .executeTakeFirst();
+      const updatedItem = await itemService.updateItem(id, itemData);
 
       res.json(updatedItem);
-   }),
+   },
 
-   deleteItem: (async (req: Request, res: Response) => {
-      const { id } = req.params;
+   deleteItem: async (req: Request, res: Response) => {
+      const { id }: UserId = await UserId.parseAsync(req.params);
       const user = req.user as User;
 
-      const item = await db
-         .selectFrom('item')
-         .selectAll()
-         .where('id', '=', id)
-         .executeTakeFirst();
+      const item = await itemService.getItemById(id);
 
       if (!item) {
          return res.status(404).json({ detail: 'Item not found' });
@@ -115,11 +79,9 @@ export default {
          return res.status(403).json({ detail: 'Not enough permissions' });
       }
 
-      await db
-         .deleteFrom('item')
-         .where('id', '=', id)
-         .execute();
+      await itemService.deleteItem(id);
 
       res.json({ message: 'Item deleted successfully' });
-   }),
+   },
 } as const;
+

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User } from 'app/types';
 import { db } from 'db';
 import { UserUpdate } from 'db/types';
-import { JwtPayload } from '../models/auth.model.ts';
+import { JwtPayload } from 'models/auth.model.ts';
 
 export class AuthService {
    private SALT_ROUNDS = <number | undefined> Deno.env.get('SALT_ROUNDS');

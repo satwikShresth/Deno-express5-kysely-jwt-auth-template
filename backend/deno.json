@@ -20,6 +20,7 @@
     "database/": "./database/",
     "routes/": "./src/routes/",
     "middlewares/": "./src/middlewares/",
+    "models/": "./src/models/",
     "controllers/": "./src/controllers/",
     "services/": "./src/services/",
     "db": "./kysely.config.ts",

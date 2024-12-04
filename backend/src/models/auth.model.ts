@@ -6,7 +6,7 @@ import {
    is_active,
    new_password,
    password,
-} from './common.model.ts';
+} from 'models/common.model.ts';
 // s
 export const Signup = z
    .object({

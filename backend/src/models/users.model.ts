@@ -9,6 +9,7 @@ import {
    new_password,
    parseOptionalInt,
    password,
+   QuerySkipLimit,
 } from './common.model.ts';
 
 // SuperUserSignup Schema
@@ -46,10 +47,7 @@ export const ModifyPassword = z
    });
 
 // QueryUser Schema
-export const QueryUser = z.object({
-   skip: parseOptionalInt('Skip', 0),
-   limit: parseOptionalInt('Limit', 1, 1000),
-});
+export const QueryUser = QuerySkipLimit;
 
 // ModifyUser Schema
 export const ModifyUser = z
