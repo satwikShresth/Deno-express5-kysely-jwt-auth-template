@@ -46,9 +46,6 @@ services:
         - path: ./backend/src
           target: /app/src
           action: sync
-        - path: ./backend/public
-          target: /app/public
-          action: sync
         - path: ./backend/db
           target: /app/db
           action: sync+restart

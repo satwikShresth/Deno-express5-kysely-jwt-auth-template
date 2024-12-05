@@ -11,8 +11,6 @@ COPY ./*.ts /app/
 
 COPY ./database /app/database
 
-COPY ./public /app/public
-
 COPY ./entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
 
