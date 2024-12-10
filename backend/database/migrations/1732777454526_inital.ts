@@ -41,4 +41,3 @@ export async function down(db: Kysely<any>): Promise<void> {
 
    await sql`DROP EXTENSION IF EXISTS "uuid-ossp"`.execute(db);
 }
-

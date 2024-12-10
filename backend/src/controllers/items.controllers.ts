@@ -84,4 +84,3 @@ export default {
       res.json({ message: 'Item deleted successfully' });
    },
 } as const;
-

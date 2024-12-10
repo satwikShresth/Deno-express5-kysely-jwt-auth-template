@@ -105,4 +105,3 @@ export type QueryUser = z.infer<typeof QueryUser>;
 export type SuperUserSignup = z.infer<typeof SuperUserSignup>;
 export type ModifyInfo = z.infer<typeof ModifyInfo>;
 export type ModifyPassword = z.infer<typeof ModifyPassword>;
-

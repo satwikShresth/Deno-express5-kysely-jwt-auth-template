@@ -23,7 +23,6 @@ export const Signup = z
          path: ['confirm_password'],
       },
    );
-
 export const Login = z
    .object({ username: email, password }).strict();
 
