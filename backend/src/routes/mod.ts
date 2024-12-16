@@ -7,9 +7,10 @@ import { authenticateToken } from 'middlewares/auth.middleware.ts';
 export default () => {
    const router = Router();
 
-   router.use('/items', authenticateToken, itemsRoutes());
-   router.use('/users', authenticateToken, usersRoutes());
    router.use(authRoutes());
+   router.use(authenticateToken);
+   router.use('/items', itemsRoutes());
+   router.use('/users', usersRoutes());
 
    return router;
 };

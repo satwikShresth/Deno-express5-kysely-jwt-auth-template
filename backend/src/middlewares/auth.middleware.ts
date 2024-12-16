@@ -24,5 +24,5 @@ export async function authenticateToken(
 
    req.user = user;
 
-   next(); // Proceed to the next middleware or route handler
+   next();
 }
