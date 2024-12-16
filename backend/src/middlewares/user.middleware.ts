@@ -1,13 +1,16 @@
-import { NextFunction, Request, Response } from 'express';
+import { Context, Next } from '@hono/hono';
+import { createFactory } from '@hono/hono/factory';
 
-export const checkSuperUser = (
-   req: Request,
-   _res: Response,
-   next: NextFunction,
-) => {
-   if (!req.user?.is_superuser) {
-      throw new Error('Not enough privileges');
-   }
-   req.is_superuser = true;
-   next();
-};
+const factory = createFactory();
+
+export const checkSuperUser = factory.createMiddleware(
+   async (
+      ctx: Context,
+      next: Next,
+   ) => {
+      if (!ctx.get('user')?.is_superuser) {
+         throw new Error('Not enough privileges');
+      }
+      await next();
+   },
+);

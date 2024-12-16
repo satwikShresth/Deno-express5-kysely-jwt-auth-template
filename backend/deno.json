@@ -1,17 +1,15 @@
 {
    "imports": {
+      "@hono/hono": "jsr:@hono/hono@^4.6.14",
+      "@hono/swagger-ui": "npm:@hono/swagger-ui@^0.5.0",
+      "@hono/typebox-validator": "npm:@hono/typebox-validator@^0.3.0",
+      "@scalar/hono-api-reference": "npm:@scalar/hono-api-reference@^0.5.164",
+      "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.11",
       "@std/path": "jsr:@std/path@^1.0.8",
-      "@types/morgan": "npm:@types/morgan@^1.9.9",
-      "@types/multer": "npm:@types/multer@^1.4.12",
-      "chalk": "npm:chalk@^5.3.0",
-      "cors": "npm:cors@^2.8.5",
-      "express": "npm:express@5.0.1",
-      "jsonwebtoken": "npm:jsonwebtoken@^9.0.2",
+      "hono-openapi": "npm:hono-openapi@^0.2.1",
       "bcrypt": "https://deno.land/x/bcrypt@v0.3.0/mod.ts",
       "kysely": "npm:kysely@^0.27.4",
       "kysely-ctl": "npm:kysely-ctl@^0.9.0",
-      "morgan": "npm:morgan@^1.10.0",
-      "multer": "npm:multer@^1.4.5-lts.1",
       "pg": "npm:pg@^8.13.1",
       "database/": "./database/",
       "routes/": "./src/routes/",
@@ -22,8 +20,6 @@
       "db": "./kysely.config.ts",
       "db/types": "./database/types/mod.ts",
       "app/types": "./src/types/mod.ts",
-      "zod": "npm:zod@^3.23.8",
-      "zod-express-middleware": "npm:zod-express-middleware@^1.4.0"
    },
    "fmt": {
       "useTabs": false,

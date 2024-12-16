@@ -1,13 +1,12 @@
 import * as bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import * as jwt from '@hono/hono/jwt';
 import { db } from 'db';
 import { User, UserUpdate } from 'db/types';
 import { JwtPayload } from 'models/auth.model.ts';
 
 export class AuthService {
-   private SALT_ROUNDS = <number | undefined> Deno.env.get('SALT_ROUNDS');
-   private JWT_SECRET = Deno.env.get('JWT_SECRET');
-   private JWT_EXPIRATION = Deno.env.get('JWT_EXPIRATION');
+   private SALT_ROUNDS: number = Number(Deno.env.get('SALT_ROUNDS'));
+   private JWT_SECRET: string = Deno.env.get('JWT_SECRET') as string;
 
    private async validateUserExists(id: string): Promise<User> {
       const user = await this.findUserById(id);
@@ -180,23 +179,20 @@ export class AuthService {
       return user as User;
    }
 
-   generateToken(user: User): string {
-      return jwt.sign(
+   async generateToken(user: User): Promise<string> {
+      return await jwt.sign(
          {
             id: user.id,
-            email: user.email,
-            is_active: user.is_active,
             //iss: 'example.com', // Issuer (your domain or system)
-            iat: Math.floor(Date.now() / 1000), // Issued at
+            exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 5,
+            iat: Math.floor(Date.now() / 1000),
          },
          this.JWT_SECRET,
-         { expiresIn: this.JWT_EXPIRATION },
       );
    }
 
-   decodeJwtToken(token: string): JwtPayload {
-      const decoded = jwt.verify(token, this.JWT_SECRET);
-      return decoded;
+   async decodeJwtToken(token: string): Promise<JwtPayload> {
+      return await jwt.verify(token, this.JWT_SECRET) as JwtPayload;
    }
 
    async validateJwtToken(payload: JwtPayload): Promise<User> {
@@ -208,14 +204,6 @@ export class AuthService {
 
       if (!user) {
          throw new Error('User not found');
-      }
-
-      if (user.email !== payload.email) {
-         throw new Error('Email mismatch');
-      }
-
-      if (user.is_active !== payload.is_active) {
-         throw new Error('Account status mismatch');
       }
 
       return user as User;

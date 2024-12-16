@@ -1,28 +1,67 @@
-import { NextFunction, Request, Response } from 'express';
+import { Context, Next } from '@hono/hono';
 import { authService } from 'services/auth.service.ts';
-import { JwtPayload } from 'models/auth.model.ts';
+import { User } from 'models/users.model.ts';
+import { jwt } from '@hono/hono/jwt';
+import { HTTPException } from '@hono/hono/http-exception';
+import { createFactory } from '@hono/hono/factory';
 
-export async function authenticateToken(
-   req: Request,
-   res: Response,
-   next: NextFunction,
-) {
-   const token: string | undefined = req.headers?.authorization?.split(' ')[1];
+const factory = createFactory();
 
-   if (!token) {
-      return res.status(401).json({ message: 'Authentication token required' });
-   }
+export const authenticateToken = [
+   factory.createMiddleware(async (
+      ctx: Context,
+      next: Next,
+   ) =>
+      await jwt({
+         secret: Deno.env.get('JWT_SECRET') || 'your-default-secret',
+      })(
+         ctx,
+         next,
+      )
+   ),
+   factory.createMiddleware(
+      async (ctx: Context, next: Next) => {
+         try {
+            const jwtPayload = await ctx.get('jwtPayload');
 
-   const payload = authService.decodeJwtToken(token);
-   const parsed = JwtPayload.safeParse(payload);
+            if (!jwtPayload) {
+               throw new HTTPException(401, {
+                  message: 'Invalid or missing token',
+               });
+            }
 
-   if (!parsed.success) {
-      res.status(400).send({ type: 'JwtToken', errors: parsed.error });
-   }
+            const user = await authService.validateJwtToken(jwtPayload);
 
-   const user = await authService.validateJwtToken(parsed.data as JwtPayload);
+            if (!user) {
+               throw new HTTPException(401, {
+                  message: 'User not found or invalid',
+               });
+            }
 
-   req.user = user;
+            ctx.set('user', user as User);
 
-   next(); // Proceed to the next middleware or route handler
-}
+            await next();
+         } catch (error) {
+            console.error('Auth Error:', error);
+
+            if (error instanceof HTTPException) {
+               return ctx.json(
+                  {
+                     error: error.message,
+                     status: error.status,
+                  },
+                  error.status,
+               );
+            }
+
+            return ctx.json(
+               {
+                  error: 'Authentication failed',
+                  status: 401,
+               },
+               401,
+            );
+         }
+      },
+   ),
+];

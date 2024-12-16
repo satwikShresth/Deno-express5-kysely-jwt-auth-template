@@ -1,40 +1,34 @@
-import { z } from 'zod';
+// auth.model.ts
+import { Static, Type } from '@sinclair/typebox';
 import {
    email,
    full_name,
    id,
-   is_active,
    new_password,
    password,
 } from 'models/common.model.ts';
-// s
-export const Signup = z
-   .object({
-      email,
-      password: new_password,
-      full_name,
-      confirm_password: password,
-   })
-   .strict()
-   .refine(
-      (data) => data.password === data.confirm_password,
-      {
-         message: 'New password and confirm password must match.',
-         path: ['confirm_password'],
-      },
-   );
-export const Login = z
-   .object({ username: email, password }).strict();
 
-// Define the Zod schema for the JWT payload
-export const JwtPayload = z.object({
-   id,
+export const Signup = Type.Object({
    email,
-   is_active,
-   iat: z.number().int().nonnegative(), // Issued At: Must be a non-negative integer (timestamp)
-   // iss: z.string().optional(), // Optional issuer: Uncomment if `iss` is included in the payload
+   password: new_password,
+   full_name,
+}, {
+   additionalProperties: false,
 });
 
-export type Signup = z.infer<typeof Signup>;
-export type Login = z.infer<typeof Login>;
-export type JwtPayload = z.infer<typeof JwtPayload>;
+export const Login = Type.Object({
+   username: email,
+   password,
+}, {
+   additionalProperties: false,
+});
+
+export const JwtPayload = Type.Object({
+   id,
+   iat: Type.Integer({ minimum: 0 }),
+   exp: Type.Integer({ minimum: 0 }),
+});
+
+export type Signup = Static<typeof Signup>;
+export type Login = Static<typeof Login>;
+export type JwtPayload = Static<typeof JwtPayload>;

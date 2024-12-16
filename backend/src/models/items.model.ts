@@ -1,26 +1,26 @@
+// items.model.ts
+import { Static, Type } from '@sinclair/typebox';
 import { QuerySkipLimit } from 'models/common.model.ts';
-import { z } from 'zod';
 
-export const Item = z.object({
-   description: z
-      .string()
-      .max(255, { message: 'Description must be under 255 characters' })
-      .nullable(),
-   title: z
-      .string()
-      .max(255, { message: 'Title must be under 255 characters' }),
-}).refine(
-   (data) => {
-      if (data.description && data.title.length >= data.description.length) {
-         return false;
-      }
-      return true;
-   },
-   { message: 'Title must be shorter than description' },
-);
-// QueryItem Schema
+export const Item = Type.Object({
+   description: Type.Union([
+      Type.String({
+         maxLength: 255,
+         errorMessage: {
+            maxLength: 'Description must be under 255 characters',
+         },
+      }),
+      Type.Null(),
+   ]),
+   title: Type.String({
+      maxLength: 255,
+      errorMessage: {
+         maxLength: 'Title must be under 255 characters',
+      },
+   }),
+});
+
 export const QueryItem = QuerySkipLimit;
+export type QueryItem = Static<typeof QueryItem>;
+export type Item = Static<typeof Item>;
 
-//types
-export type QueryItem = z.infer<typeof QueryItem>;
-export type Item = z.infer<typeof Item>;
