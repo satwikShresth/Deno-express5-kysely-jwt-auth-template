@@ -1,0 +1,11 @@
+# see all versions at https://hub.docker.com/r/oven/bun/tags
+FROM node:lts
+
+WORKDIR /app
+
+COPY ./*.js /app/
+COPY ./*.json /app/
+
+RUN npm install
+
+EXPOSE 4983

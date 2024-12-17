@@ -1,12 +1,10 @@
 import express, { NextFunction, Request, Response } from 'express';
-import morgan, { TokenIndexer } from 'morgan';
-import chalk from 'npm:chalk';
+import morgan from 'morgan';
+import { ENV, PORT } from 'config/environment.ts';
 import cors from 'cors';
 import apiV1Routes from 'routes/mod.ts';
 
 const app = express();
-const PORT = Deno.env.get('PORT') || 3000;
-const ENV = Deno.env.get('ENV') || 'development';
 
 // Middleware
 app.use(express.json());

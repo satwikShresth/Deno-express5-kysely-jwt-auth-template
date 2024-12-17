@@ -2,8 +2,8 @@
 
 if [ "${ENV}" = "development" ]; then 
   deno install
-  deno task migrate:latest
-  deno task seed
+  deno task db:migrate:push
+  # deno task seed
   deno fmt --watch &
   deno task dev
 else

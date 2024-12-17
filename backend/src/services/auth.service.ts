@@ -1,15 +1,17 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { and, count, eq, ne } from 'drizzle-orm';
 import { db } from 'db';
-import { User, UserUpdate } from 'db/types';
+import { items, users, type UserSchema } from 'db/types';
+import { User } from 'models/users.model.ts';
 import { JwtPayload } from 'models/auth.model.ts';
 
 export class AuthService {
-   private SALT_ROUNDS = <number | undefined> Deno.env.get('SALT_ROUNDS');
-   private JWT_SECRET = Deno.env.get('JWT_SECRET');
+   private SALT_ROUNDS = Number(Deno.env.get('SALT_ROUNDS'));
+   private JWT_SECRET = Deno.env.get('JWT_SECRET') as string;
    private JWT_EXPIRATION = Deno.env.get('JWT_EXPIRATION');
 
-   private async validateUserExists(id: string): Promise<User> {
+   private async validateUserExists(id: string): Promise<UserSchema> {
       const user = await this.findUserById(id);
       if (!user) {
          throw new Error('User not found');
@@ -19,58 +21,58 @@ export class AuthService {
 
    private async validateEmailUnique(
       email: string,
-      excludeUserId?: string,
+      exclude_user_id?: string,
    ): Promise<void> {
-      let query = db
-         .selectFrom('user')
-         .selectAll()
-         .where('email', '=', email);
+      const query = exclude_user_id
+         ? and(eq(users.email, email), ne(users.id, exclude_user_id))
+         : eq(users.email, email);
 
-      if (excludeUserId) {
-         query = query.where('id', '!=', excludeUserId);
-      }
+      const existing_user = await db
+         .select()
+         .from(users)
+         .where(query)
+         .limit(1);
 
-      const existingUser = await query.executeTakeFirst();
-
-      if (existingUser) {
+      if (existing_user.length > 0) {
          throw new Error('Email already exists');
       }
    }
 
-   async findUserById(id: string): Promise<User> {
-      return await db
-         .selectFrom('user')
-         .selectAll()
-         .where('id', '=', id)
-         .executeTakeFirst() as User;
+   async findUserById(id: string): Promise<UserSchema | undefined> {
+      const result = await db
+         .select()
+         .from(users)
+         .where(eq(users.id, id))
+         .limit(1);
+
+      return result[0];
    }
 
    async queryUsers(skip: number = 0, limit: number = 100) {
-      const [users, countResult] = await Promise.all([
-         db.selectFrom('user')
-            .selectAll()
+      const [users_data, count_result] = await Promise.all([
+         db
+            .select()
+            .from(users)
             .limit(limit)
-            .offset(skip)
-            .execute(),
-         db.selectFrom('user')
-            .select(db.fn.count('id').as('count'))
-            .executeTakeFirst(),
+            .offset(skip),
+         db
+            .select({ count: count(users.id) })
+            .from(users),
       ]);
 
       return {
-         data: users,
-         count: Number(countResult?.count || 0),
+         data: users_data,
+         count: Number(count_result[0]?.count || 0),
       };
    }
 
-   // User management methods
    async registerUser(
       email: string,
       password: string,
       full_name: string = 'tbd',
       is_active: boolean = false,
       is_superuser: boolean = false,
-   ): Promise<User> {
+   ): Promise<UserSchema> {
       await this.validateEmailUnique(email);
 
       const hashed_password = await bcrypt.hash(
@@ -78,8 +80,8 @@ export class AuthService {
          await bcrypt.genSalt(this.SALT_ROUNDS),
       );
 
-      return await db
-         .insertInto('user')
+      const result = await db
+         .insert(users)
          .values({
             email,
             full_name,
@@ -87,97 +89,95 @@ export class AuthService {
             is_active,
             is_superuser,
          })
-         .returningAll()
-         .executeTakeFirst() as User;
+         .returning();
+
+      return result[0];
    }
 
-   async updateUser(userId: string, userData: UserUpdate): Promise<User> {
-      await this.validateUserExists(userId);
+   async updateUser(
+      user_id: string,
+      user_data,
+   ): Promise<UserSchema> {
+      await this.validateUserExists(user_id);
 
-      if (userData.email) {
-         await this.validateEmailUnique(userData.email, userId);
+      if (user_data.email) {
+         await this.validateEmailUnique(user_data.email, user_id);
       }
 
-      return await db
-         .updateTable('user')
-         .set(userData)
-         .where('id', '=', userId)
-         .returningAll()
-         .executeTakeFirst() as User;
+      const result = await db
+         .update(users)
+         .set(user_data)
+         .where(eq(users.id, user_id))
+         .returning();
+
+      return result[0];
    }
 
    async modifyCredentials(
-      userId: string,
-      currentPassword: string,
-      newPassword: string,
+      user_id: string,
+      current_password: string,
+      new_password: string,
    ): Promise<void> {
-      const user = await this.validateUserExists(userId);
+      const user = await this.validateUserExists(user_id);
 
       if (!user.hashed_password) {
          throw new Error('Password Missing');
       }
 
-      const isValidPassword = await bcrypt.compare(
-         currentPassword,
+      const is_valid_password = await bcrypt.compare(
+         current_password,
          user.hashed_password,
       );
-      if (!isValidPassword) {
+
+      if (!is_valid_password) {
          throw new Error('Incorrect password');
       }
 
-      if (currentPassword === newPassword) {
+      if (current_password === new_password) {
          throw new Error('New password cannot be the same as the current one');
       }
 
       const hashed_password = await bcrypt.hash(
-         newPassword,
+         new_password,
          await bcrypt.genSalt(this.SALT_ROUNDS),
       );
 
       await db
-         .updateTable('user')
+         .update(users)
          .set({ hashed_password })
-         .where('id', '=', userId)
-         .execute();
+         .where(eq(users.id, user_id));
    }
 
-   async deleteUser(userId: string): Promise<void> {
-      // Validate that the user exists before attempting the deletion
-      const userToDelete = await this.validateUserExists(userId);
+   async deleteUser(user_id: string): Promise<void> {
+      await this.validateUserExists(user_id);
 
-      if (!userToDelete) {
-         throw new Error(`User with ID ${userId} does not exist`);
-      }
-
-      // Perform the transaction
-      await db.transaction().execute(async (trx) => {
+      await db.transaction(async (trx) => {
          // Delete all items associated with the user
          await trx
-            .deleteFrom('item')
-            .where('owner_id', '=', userId)
-            .execute();
+            .delete(items)
+            .where(eq(items.owner_id, user_id));
 
-         // Delete the user from the 'user' table
+         // Delete the user
          await trx
-            .deleteFrom('user')
-            .where('id', '=', userId)
-            .execute();
+            .delete(users)
+            .where(eq(users.id, user_id));
       });
    }
 
-   // Authentication methods
-   async validateUser(email: string, password: string): Promise<User> {
-      const user = await db
-         .selectFrom('user')
-         .selectAll()
-         .where('email', '=', email)
-         .executeTakeFirst();
+   async validateUser(email: string, password: string): Promise<UserSchema> {
+      const result = await db
+         .select()
+         .from(users)
+         .where(eq(users.email, email))
+         .limit(1);
+
+      const user = result[0];
 
       if (!user || !(await bcrypt.compare(password, user.hashed_password))) {
          throw new Error('Invalid credentials');
       }
 
-      return user as User;
+      return user;
    }
 
    generateToken(user: User): string {
@@ -186,8 +186,7 @@ export class AuthService {
             id: user.id,
             email: user.email,
             is_active: user.is_active,
-            //iss: 'example.com', // Issuer (your domain or system)
-            iat: Math.floor(Date.now() / 1000), // Issued at
+            iat: Math.floor(Date.now() / 1000),
          },
          this.JWT_SECRET,
          { expiresIn: this.JWT_EXPIRATION },
@@ -195,16 +194,23 @@ export class AuthService {
    }
 
    decodeJwtToken(token: string): JwtPayload {
-      const decoded = jwt.verify(token, this.JWT_SECRET);
-      return decoded;
+      return jwt.verify(token, this.JWT_SECRET) as JwtPayload;
    }
 
    async validateJwtToken(payload: JwtPayload): Promise<User> {
-      const user = await db
-         .selectFrom('user')
-         .select(['id', 'email', 'is_active', 'full_name', 'is_superuser'])
-         .where('id', '=', payload.id)
-         .executeTakeFirst();
+      const result = await db
+         .select({
+            id: users.id,
+            email: users.email,
+            is_active: users.is_active,
+            full_name: users.full_name,
+            is_superuser: users.is_superuser,
+         })
+         .from(users)
+         .where(eq(users.id, payload.id))
+         .limit(1);
+
+      const user = result[0];
 
       if (!user) {
          throw new Error('User not found');
@@ -218,7 +224,8 @@ export class AuthService {
          throw new Error('Account status mismatch');
       }
 
-      return user as User;
+      return user;
    }
 }
+
 export const authService = new AuthService();

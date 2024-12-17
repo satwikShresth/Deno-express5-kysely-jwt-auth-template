@@ -91,7 +91,7 @@ export const UserId = z.object({
 export const User = z.object({
    id,
    email,
-   full_name: full_name.optional(),
+   full_name: full_name.optional().nullable(),
    hashed_password: hashed_password.optional(),
    is_active,
    is_superuser,

@@ -1,64 +1,73 @@
+import { count, eq } from 'drizzle-orm';
 import { db } from 'db';
-import { ItemUpdate } from 'db/types';
+import { Item, items } from 'db/types';
+
+interface ItemUpdate {
+   title?: string;
+   description?: string;
+}
 
 class ItemService {
-   async getItems(skip: number, limit: number, userId: string) {
-      return await db
-         .selectFrom('item')
-         .where('owner_id', '=', userId)
-         .selectAll()
+   async getItems(skip: number, limit: number, user_id: string) {
+      const result = await db
+         .select()
+         .from(items)
+         .where(eq(items.owner_id, user_id))
          .limit(limit)
-         .offset(skip)
-         .execute();
+         .offset(skip);
+
+      return result;
    }
 
-   async getItemCount(userId?: string) {
-      let query = db
-         .selectFrom('item')
-         .select(db.fn.count('id').as('count'));
-
-      if (userId) {
-         query = query.where('owner_id', '=', userId);
-      }
-
-      const count = await query.executeTakeFirst();
-      return Number(count?.count || 0);
-   }
-
-   async getItemById(id: string) {
+   async getItemCount(user_id?: string) {
       return await db
-         .selectFrom('item')
-         .selectAll()
-         .where('id', '=', id)
-         .executeTakeFirst();
+         .select({ value: count(items.id) })
+         .from(items)
+         .where(user_id ? eq(items.owner_id, user_id) : undefined)
+         .then((result) => result[0].value);
+   }
+
+   async getItemById(id: string): Promise<Item | undefined> {
+      const result = await db
+         .select()
+         .from(items)
+         .where(eq(items.id, id))
+         .limit(1);
+
+      return result[0];
    }
 
    async createItem(
       title: string,
       description: string | null,
-      ownerId: string,
-   ) {
-      return await db
-         .insertInto('item')
-         .values({ title, description, owner_id: ownerId })
-         .returningAll()
-         .executeTakeFirst();
+      owner_id: string,
+   ): Promise<Item> {
+      const result = await db
+         .insert(items)
+         .values({
+            title,
+            description,
+            owner_id,
+         })
+         .returning();
+
+      return result[0];
    }
 
-   async updateItem(id: string, data: ItemUpdate) {
-      return await db
-         .updateTable('item')
+   async updateItem(id: string, data: ItemUpdate): Promise<Item | undefined> {
+      const result = await db
+         .update(items)
          .set(data)
-         .where('id', '=', id)
-         .returningAll()
-         .executeTakeFirst();
+         .where(eq(items.id, id))
+         .returning();
+
+      return result[0];
    }
 
-   async deleteItem(id: string) {
-      return await db
-         .deleteFrom('item')
-         .where('id', '=', id)
-         .execute();
+   async deleteItem(id: string): Promise<void> {
+      await db
+         .delete(items)
+         .where(eq(items.id, id));
    }
 }
 

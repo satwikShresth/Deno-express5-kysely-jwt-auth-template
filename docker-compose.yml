@@ -11,32 +11,31 @@ services:
       timeout: 5s
       retries: 5
 
-  adminer:
-    image: adminer
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      - db
-    environment:
-      - ADMINER_DESIGN=${ADMINER_DESIGN}
-      - ADMINER_DEFAULT_DRIVER=pgsql
-      - ADMINER_DEFAULT_DB=${POSTGRES_DB} 
-      - ADMINER_DEFAULT_SERVER=${POSTGRES_SERVER}
-      - ADMINER_DEFAULT_USERNAME=${POSTGRES_USER}
-      - ADMINER_DEFAULT_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "8080:8080"
-    configs:
-      - source: adminer-index.php
-        target: /var/www/html/index.php
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     - ADMINER_DESIGN=${ADMINER_DESIGN}
+  #     - ADMINER_DEFAULT_DRIVER=pgsql
+  #     - ADMINER_DEFAULT_DB=${POSTGRES_DB} 
+  #     - ADMINER_DEFAULT_SERVER=${POSTGRES_SERVER}
+  #     - ADMINER_DEFAULT_USERNAME=${POSTGRES_USER}
+  #     - ADMINER_DEFAULT_PASSWORD=${POSTGRES_PASSWORD}
+  #   ports:
+  #     - "8080:8080"
+  #   configs:
+  #     - source: adminer-index.php
+  #       target: /var/www/html/index.php
 
-
-  backend:
+  backend: &backend
     build:
       context: ./backend
       dockerfile: dockerfile
-    container_name: backend
+    container_name: express-backend
     env_file:
       - .env
     environment:
@@ -46,8 +45,11 @@ services:
         - path: ./backend/src
           target: /app/src
           action: sync
-        - path: ./backend/db
-          target: /app/db
+        - path: ./backend/database/
+          target: /app/database
+          action: sync+restart
+        - path: ./backend/config/
+          target: /app/config
           action: sync+restart
         - path: ./backend/deno.json
           target: /app/deno.json
@@ -58,12 +60,23 @@ services:
           action: rebuild
         - path: ./docker-compose.yml
           action: rebuild
-
     depends_on:
       db:
         condition: service_healthy
+    entrypoint: ["/app/entrypoint.sh"]
     ports:
       - "3000:3000"
+
+  drizzle-studio:
+    build:
+      context: ./drizzle-studio
+      dockerfile: dockerfile
+    container_name: drizzle-studio
+    env_file:
+      - .env
+    command: ["npx", "drizzle-kit","studio", "--host=0.0.0.0"]
+    ports:
+      - "4983:4983"
 
   frontend:
     build:
@@ -93,18 +106,18 @@ services:
           action: sync+restart
 
 
-configs:
-  adminer-index.php:
-    content: |
-      <?php
-        if(!count($$_GET)) {
-          $$_POST['auth'] = [
-            'driver' => $$_ENV['ADMINER_DEFAULT_DRIVER'],
-            'server' => $$_ENV['ADMINER_DEFAULT_SERVER'],
-            'username' => $$_ENV['ADMINER_DEFAULT_USERNAME'],
-            'password' => $$_ENV['ADMINER_DEFAULT_PASSWORD'],
-            'db'    => $$_ENV['ADMINER_DEFAULT_DB'],
-          ];
-        }
-        include './adminer.php';
-      ?>
+# configs:
+#   adminer-index.php:
+#     content: |
+#       <?php
+#         if(!count($$_GET)) {
+#           $$_POST['auth'] = [
+#             'driver' => $$_ENV['ADMINER_DEFAULT_DRIVER'],
+#             'server' => $$_ENV['ADMINER_DEFAULT_SERVER'],
+#             'username' => $$_ENV['ADMINER_DEFAULT_USERNAME'],
+#             'password' => $$_ENV['ADMINER_DEFAULT_PASSWORD'],
+#             'db'    => $$_ENV['ADMINER_DEFAULT_DB'],
+#           ];
+#         }
+#         include './adminer.php';
+#       ?>

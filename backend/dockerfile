@@ -10,10 +10,7 @@ COPY ./deno.* /app/
 COPY ./*.ts /app/
 
 COPY ./database /app/database
+COPY ./config /app/config
 
 COPY ./entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
-
-EXPOSE 3000
-
-ENTRYPOINT ["/app/entrypoint.sh"]
