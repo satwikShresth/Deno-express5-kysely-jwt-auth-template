@@ -11,7 +11,6 @@ import {
    QuerySkipLimit,
 } from 'models/common.model.ts';
 
-// SuperUserSignup Schema
 export const SuperUserSignup = z
    .object({
       email,

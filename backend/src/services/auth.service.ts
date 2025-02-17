@@ -186,6 +186,7 @@ export class AuthService {
             id: user.id,
             email: user.email,
             is_active: user.is_active,
+            full_name: user.full_name,
             iat: Math.floor(Date.now() / 1000),
          },
          this.JWT_SECRET,

@@ -1,5 +1,5 @@
 import { defineConfig, Config } from 'drizzle-kit';
-import { database, host, password, port, user } from '../config/database.ts';
+import { database, host, password, port, user } from './database.ts';
 
 export default defineConfig({
    dialect: 'postgresql',

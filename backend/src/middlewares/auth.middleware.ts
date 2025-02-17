@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { authService } from 'services/auth.service.ts';
 import { JwtPayload } from 'models/auth.model.ts';
 
-export async function authenticateToken(
+export const authenticateToken = (
    req: Request,
    res: Response,
    next: NextFunction,
-) {
+) => {
    const token: string | undefined = req.headers?.authorization?.split(' ')[1];
 
    if (!token) {
@@ -20,9 +20,20 @@ export async function authenticateToken(
       res.status(400).send({ type: 'JwtToken', errors: parsed.error });
    }
 
-   const user = await authService.validateJwtToken(parsed.data as JwtPayload);
-
-   req.user = user;
+   req.user = parsed.data as JwtPayload;
 
    next();
-}
+};
+
+export const checkSuperUser = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+) => {
+   const user = await authService.validateJwtToken(req.user);
+
+   if (!user.is_superuser) {
+      return res.status(403).json({ message: 'Forbidden Acesss' });
+   }
+   next();
+};

@@ -11,7 +11,7 @@ import {
    UserId,
 } from 'models/users.model.ts';
 import { validateRequest } from 'zod-express-middleware';
-import { checkSuperUser } from 'middlewares/user.middleware.ts';
+import { checkSuperUser } from 'middlewares/auth.middleware.ts';
 
 export default () => {
    const router = Router();

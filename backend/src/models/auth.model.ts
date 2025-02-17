@@ -7,7 +7,7 @@ import {
    new_password,
    password,
 } from 'models/common.model.ts';
-// s
+
 export const Signup = z
    .object({
       email,
@@ -26,9 +26,9 @@ export const Signup = z
 export const Login = z
    .object({ username: email, password }).strict();
 
-// Define the Zod schema for the JWT payload
 export const JwtPayload = z.object({
    id,
+   full_name,
    email,
    is_active,
    iat: z.number().int().nonnegative(), // Issued At: Must be a non-negative integer (timestamp)
